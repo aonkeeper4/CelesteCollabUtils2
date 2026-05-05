@@ -12,13 +12,18 @@ namespace Celeste.Mod.CollabUtils2.Entities {
         private readonly bool allowSaving;
         private readonly string fillSoundEffect;
         private readonly int bubbleOffsetY;
+        private readonly string interactFlag;
+        private readonly string visibleFlag;
+        private readonly Sprite sprite;
 
-        public WarpPedestal(Vector2 position, string spriteName, string map, string returnToLobbyMode, bool allowSaving, string fillSoundEffect, int bubbleOffsetY) : base(position) {
+        public WarpPedestal(Vector2 position, string spriteName, string map, string returnToLobbyMode, bool allowSaving, string fillSoundEffect, int bubbleOffsetY, string interactFlag, string visibleFlag) : base(position) {
             this.map = map;
             this.returnToLobbyMode = returnToLobbyMode;
             this.allowSaving = allowSaving;
             this.fillSoundEffect = fillSoundEffect;
             this.bubbleOffsetY = bubbleOffsetY;
+            this.interactFlag = interactFlag;
+            this.visibleFlag = visibleFlag;
 
             // check if the map was already completed
             AreaData areaData = AreaData.Get(map);
@@ -42,7 +47,7 @@ namespace Celeste.Mod.CollabUtils2.Entities {
                 animation = "empty";
             }
 
-            Sprite sprite = GFX.SpriteBank.Create(spriteName);
+            sprite = GFX.SpriteBank.Create(spriteName);
             sprite.Play(animation);
             Add(sprite);
 
@@ -59,8 +64,9 @@ namespace Celeste.Mod.CollabUtils2.Entities {
         }
 
         public WarpPedestal(EntityData data, Vector2 offset) : this(data.Position + offset, data.Attr("sprite"), data.Attr("map"),
-            data.Attr("returnToLobbyMode"), data.Bool("allowSaving"), data.Attr("fillSoundEffect"), data.Int("bubbleOffsetY")) { }
-
+            data.Attr("returnToLobbyMode"), data.Bool("allowSaving"), data.Attr("fillSoundEffect"), data.Int("bubbleOffsetY"),
+            data.String("interactFlag",""), data.String("visibleFlag","")) { }
+        
         public override void Added(Scene scene) {
             base.Added(scene);
 
@@ -73,9 +79,16 @@ namespace Celeste.Mod.CollabUtils2.Entities {
                 Values = new Dictionary<string, object>() {
                     { "map", map },
                     { "returnToLobbyMode", returnToLobbyMode },
-                    { "allowSaving", allowSaving }
+                    { "allowSaving", allowSaving },
+                    { "interactFlag", interactFlag }
                 }
             }, Vector2.Zero));
+        }
+
+        public override void Update() {
+            base.Update();
+            if (string.IsNullOrWhiteSpace(visibleFlag)) return;
+            sprite.Visible = SceneAs<Level>()?.Session.GetFlag(visibleFlag) ?? true;
         }
     }
 }

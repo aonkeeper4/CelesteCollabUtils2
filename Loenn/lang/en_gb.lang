@@ -57,6 +57,7 @@ triggers.CollabUtils2/ChapterPanelTrigger.attributes.description.map=The SID (st
 triggers.CollabUtils2/ChapterPanelTrigger.attributes.description.returnToLobbyMode=Determines how "Return to Lobby" will behave after entering this map.\n- SetReturnToHere: the Return to Lobby button will return the player to the nearest spawn point in the current map.\n- RemoveReturn: the Return to Lobby button will disappear from the pause menu.\n- DoNotChangeReturn: the current Return to Lobby button will not be changed.
 triggers.CollabUtils2/ChapterPanelTrigger.attributes.description.allowSaving=If selected, the player will be allowed to save and return to the lobby in the map this trigger teleports to, by selecting "Save" when returning to lobby. Not compatible with maps that have checkpoints.
 triggers.CollabUtils2/ChapterPanelTrigger.attributes.description.tech=Comma-separated list of tech used in the level, corresponding to gym names (e.g. hyper,wallbounce,cornerboost).\nFilling this out will make a second tab appear in the chapter panel,\nthat allows the player to a room teaching a tech (be sure to put a Gym Marker inside it).
+triggers.CollabUtils2/ChapterPanelTrigger.attributes.description.interactFlag=The flag that determines if the trigger is interactable.
 
 # Exit From Gym Trigger
 triggers.CollabUtils2/ExitFromGymTrigger.placements.name.default=Exit From Gym
@@ -146,3 +147,5 @@ entities.CollabUtils2/WarpPedestal.attributes.description.allowSaving=If selecte
 entities.CollabUtils2/WarpPedestal.attributes.description.sprite=The sprite to use for the pedestal, from your map's Sprites.xml.\nYou can use "CollabUtils2_placeholderOrb" in Collab Utils' own Sprites.xml as a reference.
 entities.CollabUtils2/WarpPedestal.attributes.description.bubbleOffsetY=The Y offset of the speech bubble above the pedestal. Bigger values will move the bubble up.
 entities.CollabUtils2/WarpPedestal.attributes.description.fillSoundEffect=The sound effect to play when the pedestal fills up / activates after beating a map for the first time.
+entities.CollabUtils2/WarpPedestal.attributes.description.interactFlag=The flag that determines if the pedestal is interactable.
+entities.CollabUtils2/WarpPedestal.attributes.description.visibleFlag=The flag that determines if the pedestal is visible.

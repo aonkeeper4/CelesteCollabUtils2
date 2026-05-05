@@ -13,8 +13,23 @@ pedestal.placements = {
         returnToLobbyMode = "SetReturnToHere",
         allowSaving = true,
         fillSoundEffect = "",
-        bubbleOffsetY = 16
+        bubbleOffsetY = 16,
+        interactFlag = "",
+        visibleFlag = ""
     }
+}
+
+pedestal.fieldOrder = {
+    "x",
+    "y",
+    "map",
+    "sprite",
+    "returnToLobbyMode",
+    "fillSoundEffect",
+    "bubbleOffsetY",
+    "interactFlag",
+    "visibleFlag",
+    "allowSaving"
 }
 
 pedestal.fieldInformation = {
@@ -24,6 +39,12 @@ pedestal.fieldInformation = {
     returnToLobbyMode = {
         options = { "SetReturnToHere", "RemoveReturn", "DoNotChangeReturn" },
         editable = false
+    },
+    interactFlag = {
+        default = ""
+    },
+    visibleFlag = {
+        default = ""
     }
 }
 

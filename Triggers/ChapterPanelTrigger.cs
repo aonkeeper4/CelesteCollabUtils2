@@ -10,9 +10,10 @@ namespace Celeste.Mod.CollabUtils2.Triggers {
         public enum ReturnToLobbyMode {
             SetReturnToHere, RemoveReturn, DoNotChangeReturn
         }
-
+        
         private readonly TalkComponent talkComponent;
-
+        private readonly string interactFlag;
+        
         public ChapterPanelTrigger(EntityData data, Vector2 offset)
             : base(data, offset) {
 
@@ -21,6 +22,8 @@ namespace Celeste.Mod.CollabUtils2.Triggers {
             bool savingAllowed = data.Bool("allowSaving", defaultValue: true);
             bool exitFromGym = data.Name == "CollabUtils2/ExitFromGymTrigger";
             bool markTechAsLearned = exitFromGym && data.Bool("markTechAsLearned");
+            interactFlag = data.Attr("interactFlag");
+            
 
             Add(talkComponent = new TalkComponent(
                 new Rectangle(0, 0, data.Width, data.Height),
@@ -52,7 +55,7 @@ namespace Celeste.Mod.CollabUtils2.Triggers {
 
         public override void Update() {
             base.Update();
-            talkComponent.Enabled = !InGameOverworldHelper.IsOpen;
+            talkComponent.Enabled = !InGameOverworldHelper.IsOpen && string.IsNullOrWhiteSpace(interactFlag) || (SceneAs<Level>()?.Session.GetFlag(interactFlag) ?? true);
         }
     }
 }
