@@ -8,15 +8,32 @@ trigger.placements = {
             map = "Celeste/1-ForsakenCity",
             returnToLobbyMode = "SetReturnToHere",
             allowSaving = true,
-            tech = ""
+            tech = "",
+            interactFlag = ""
         }
     }
+}
+
+trigger.fieldOrder = {
+    "x",
+    "y",
+    "width",
+    "height",
+    "map",
+    "returnToLobbyMode",
+    "tech",
+    "interactFlag",
+    "allowSaving"
 }
 
 trigger.fieldInformation = {
     returnToLobbyMode = {
         options = { "SetReturnToHere", "RemoveReturn", "DoNotChangeReturn" },
         editable = false
+    },
+
+    interactFlag = {
+        default = ""
     }
 }
 
