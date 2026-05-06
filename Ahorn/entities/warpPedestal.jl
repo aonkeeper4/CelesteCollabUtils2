@@ -3,7 +3,11 @@ module CollabUtils2WarpPedestal
 using ..Ahorn, Maple
 
 @mapdef Entity "CollabUtils2/WarpPedestal" WarpPedestal(x::Integer, y::Integer, map::String="Celeste/1-ForsakenCity", sprite::String="CollabUtils2_placeholderOrb",
-    returnToLobbyMode::String="SetReturnToHere", allowSaving::Bool=true, fillSoundEffect::String="", bubbleOffsetY::Integer=16)
+    returnToLobbyMode::String="SetReturnToHere", allowSaving::Bool=true, fillSoundEffect::String="", bubbleOffsetY::Integer=16,
+    interactFlag::String="", visibleFlag::String="")
+
+Ahorn.editingOrder(entity::WarpPedestal) = String["x", "y", "map", "sprite", "returnToLobbyMode", "fillSoundEffect", "bubbleOffsetY",
+    "interactFlag", "visibleFlag", "allowSaving"]
 
 const placements = Ahorn.PlacementDict(
     "Warp Pedestal (Collab Utils 2)" => Ahorn.EntityPlacement(

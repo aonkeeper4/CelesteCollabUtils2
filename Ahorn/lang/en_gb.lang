@@ -3,6 +3,7 @@ placements.triggers.CollabUtils2/ChapterPanelTrigger.tooltips.map=The SID (strin
 placements.triggers.CollabUtils2/ChapterPanelTrigger.tooltips.returnToLobbyMode=Determines how "Return to Lobby" will behave after entering this map.\n- SetReturnToHere: the Return to Lobby button will return the player to the nearest spawn point in the current map.\n- RemoveReturn: the Return to Lobby button will disappear from the pause menu.\n- DoNotChangeReturn: the current Return to Lobby button will not be changed.
 placements.triggers.CollabUtils2/ChapterPanelTrigger.tooltips.allowSaving=If selected, the player will be allowed to save and return to the lobby in the map this trigger teleports to, by selecting "Save" when returning to lobby. Not compatible with maps that have checkpoints.
 placements.triggers.CollabUtils2/ChapterPanelTrigger.tooltips.tech=Comma-separated list of tech used in the level, corresponding to gym names (e.g. hyper,wallbounce,cornerboost).\nFilling this out will make a second tab appear in the chapter panel,\nthat allows the player to a room teaching a tech (be sure to put a Gym Marker inside it).
+placements.triggers.CollabUtils2/ChapterPanelTrigger.tooltips.interactFlag=The flag that determines if the trigger is interactable.
 
 # Exit From Gym Trigger
 placements.triggers.CollabUtils2/ExitFromGymTrigger.tooltips.markTechAsLearned=Whether to mark this room's tech as learned upon interaction.
@@ -120,3 +121,5 @@ placements.entities.CollabUtils2/WarpPedestal.tooltips.allowSaving=If selected, 
 placements.entities.CollabUtils2/WarpPedestal.tooltips.sprite=The sprite to use for the pedestal, from your map's Sprites.xml.\nYou can use "CollabUtils2_placeholderOrb" in Collab Utils' own Sprites.xml as a reference.
 placements.entities.CollabUtils2/WarpPedestal.tooltips.bubbleOffsetY=The Y offset of the speech bubble above the pedestal. Bigger values will move the bubble up.
 placements.entities.CollabUtils2/WarpPedestal.tooltips.fillSoundEffect=The sound effect to play when the pedestal fills up / activates after beating a map for the first time.
+placements.entities.CollabUtils2/WarpPedestal.tooltips.interactFlag=The flag that determines if the pedestal is interactable.
+placements.entities.CollabUtils2/WarpPedestal.tooltips.visibleFlag=The flag that determines if the pedestal is visible.

@@ -65,8 +65,8 @@ namespace Celeste.Mod.CollabUtils2.Entities {
 
         public WarpPedestal(EntityData data, Vector2 offset) : this(data.Position + offset, data.Attr("sprite"), data.Attr("map"),
             data.Attr("returnToLobbyMode"), data.Bool("allowSaving"), data.Attr("fillSoundEffect"), data.Int("bubbleOffsetY"),
-            data.String("interactFlag",""), data.String("visibleFlag","")) { }
-        
+            data.Attr("interactFlag"), data.Attr("visibleFlag")) { }
+
         public override void Added(Scene scene) {
             base.Added(scene);
 

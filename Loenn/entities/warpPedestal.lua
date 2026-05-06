@@ -39,12 +39,6 @@ pedestal.fieldInformation = {
     returnToLobbyMode = {
         options = { "SetReturnToHere", "RemoveReturn", "DoNotChangeReturn" },
         editable = false
-    },
-    interactFlag = {
-        default = ""
-    },
-    visibleFlag = {
-        default = ""
     }
 }
 
