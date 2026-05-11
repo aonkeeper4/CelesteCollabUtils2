@@ -402,7 +402,7 @@ Here is how you can do this:
 
 - Put the **image to display for the tech in the chapter panel** in `Graphics/Atlases/Checkpoints/{CollabName}/Gyms/{TechName}.png`.
 - Add the **name of the tech** in your `English.txt`: `{CollabName}_gym_{TechName}_name= The Tech Name`
-- Add the **difficulty of the tech** in your `English.txt`: `{CollabName}_gym_{TechName}_difficulty= The Difficulty Name`. If the dialog key is not present, no difficulty will be displayed.
+- Add the **category of the tech** in your `English.txt`: `{CollabName}_gym_{TechName}_category= The Category Name`. If the dialog key is not present, no category will be displayed. This can be used to assign difficulty to tech, for example.
 
 ### Listing tech used in each map
 

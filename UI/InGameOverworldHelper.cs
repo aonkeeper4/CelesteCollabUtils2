@@ -112,6 +112,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
             { "grandmaster", Calc.HexToColor("f3bafa") }
         };
         private static readonly Color fallbackTechLearnedColor = Calc.HexToColor("abf797");
+        private static readonly string[] defaultTechOrdering = ["beginner", "intermediate", "advanced", "expert", "grandmaster"];
 
         private static bool presenceLock = false;
 
@@ -402,7 +403,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
 
         private class OuiChapterPanelGymOption : OuiChapterPanel.Option {
             public bool LegacyRenderMode;
-            public string DifficultyLabel;
+            public string CategoryLabel;
         }
 
         private static MethodInfo m_OuiChapterPanel__ModAreaselectTexture = typeof(OuiChapterPanel).GetMethod("_ModAreaselectTexture", BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -729,11 +730,18 @@ namespace Celeste.Mod.CollabUtils2.UI {
             self.checkpoints.Clear();
             int nextSelectedOption = -1;
 
-            string[] tech = activeGymTech.Where(techName => techForCollab.ContainsKey(techName))
-                .OrderBy(techName => techForCollab[techName].Order).ToArray();
-            string[] learnedTech = tech.Where(techName =>
-                CollabModule.Instance.SaveData.LearnedTech.TryGetValue(collabID, out var learnedTechForCollab)
-                && learnedTechForCollab.Contains(techName)).ToArray();
+            string[] tech = activeGymTech
+                .Where(techName => techForCollab.ContainsKey(techName))
+                .OrderBy(techName => techForCollab[techName].Order
+                    ?? (techForCollab[techName].Difficulty is { } difficulty
+                        ? defaultTechOrdering.IndexOf(difficulty)
+                        : -1))
+                .ToArray();
+            string[] learnedTech = tech
+                .Where(techName =>
+                    CollabModule.Instance.SaveData.LearnedTech.TryGetValue(collabID, out var learnedTechForCollab)
+                    && learnedTechForCollab.Contains(techName))
+                .ToArray();
             string[] unlearnedTech = tech.Except(learnedTech).ToArray();
             AddGymOptions(unlearnedTech, false, 0);
             AddGymOptions(learnedTech, true, unlearnedTech.Length);
@@ -756,9 +764,9 @@ namespace Celeste.Mod.CollabUtils2.UI {
                             : fallbackTechLearnedColor);
 
                     string label = Dialog.Clean($"{LobbyHelper.GetCollabNameForSID(techInfo.AreaSID)}_gym_{techName}_name");
-                    string difficultyLabelID = $"{LobbyHelper.GetCollabNameForSID(techInfo.AreaSID)}_gym_{techName}_difficulty";
-                    string difficultyLabel = Dialog.Has(difficultyLabelID)
-                        ? Dialog.Clean(difficultyLabelID)
+                    string categoryLabelID = $"{LobbyHelper.GetCollabNameForSID(techInfo.AreaSID)}_gym_{techName}_category";
+                    string categoryLabel = Dialog.Has(categoryLabelID)
+                        ? Dialog.Clean(categoryLabelID)
                         : techInfo.Difficulty is { } difficulty
                             ? Dialog.Clean($"collabutils2_difficulty_{difficulty}")
                             : null;
@@ -773,7 +781,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
                         CheckpointOffset = Calc.Random.Range(Vector2.One * -16f, Vector2.One * 16f),
                         Large = false,
                         Siblings = tech.Length,
-                        DifficultyLabel = difficultyLabel,
+                        CategoryLabel = categoryLabel,
                         LegacyRenderMode = techInfo.LegacyRenderMode
                     });
 
@@ -989,7 +997,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
 
             cursor.Index = 0;
 
-            // 5. Draw the difficulty underneath the checkpoint label in gyms.
+            // 5. Draw the category underneath the checkpoint label in gyms.
             while (cursor.TryGotoNextBestFit(MoveType.Before,
                 instr => instr.MatchCall(typeof(ActiveFont), "Draw"),
                 instr => instr.MatchLdarg0(),
@@ -1064,7 +1072,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
             if (!gymSubmenuSelected(self) || self.selectingMode)
                 return false;
 
-            if (self.options[self.option] is not OuiChapterPanelGymOption { DifficultyLabel: not null })
+            if (self.options[self.option] is not OuiChapterPanelGymOption { CategoryLabel: not null })
                 return false;
 
             return true;
@@ -1075,7 +1083,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
                 return;
 
             ActiveFont.Draw(gymOption.Label, self.OptionsRenderPosition + new Vector2(0f, -140f), new Vector2(0.5f, 1f), Vector2.One * (1f + self.wiggler.Value * 0.1f), color);
-            ActiveFont.Draw(gymOption.DifficultyLabel, self.OptionsRenderPosition + new Vector2(0f, -140f), new Vector2(0.5f, 0f), Vector2.One * 0.6f * (1f + self.wiggler.Value * 0.1f), color);
+            ActiveFont.Draw(gymOption.CategoryLabel, self.OptionsRenderPosition + new Vector2(0f, -140f), new Vector2(0.5f, 0f), Vector2.One * 0.6f * (1f + self.wiggler.Value * 0.1f), color);
         }
 
         private static void ModOuiChapterPanelOptionRender(ILContext il) {
