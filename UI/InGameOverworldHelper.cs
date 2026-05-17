@@ -225,6 +225,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
         private static bool heartDirty;
         private static string[] activeGymTech;
         private static readonly HashSet<DeathsCounter> deathsCountersAddedByCollabUtils = new HashSet<DeathsCounter>();
+        private static Dictionary<string, string> OverrideDeathsIcons = new Dictionary<string, string>();
 
         private static void OnOuiChapterPanelStart(On.Celeste.OuiChapterPanel.orig_Start orig, OuiChapterPanel self, string checkpoint) {
             if (overworldWrapper != null) {
@@ -402,6 +403,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
         }
 
         private class OuiChapterPanelGymOption : OuiChapterPanel.Option {
+            public string TechName;
             public bool LegacyRenderMode;
             public string CategoryLabel;
         }
@@ -531,6 +533,34 @@ namespace Celeste.Mod.CollabUtils2.UI {
 
             if (OverrideHeartSpriteIDs.TryGetValue(sideName, out _))
                 OverrideHeartSpriteIDs.Remove(sideName);
+        }
+
+        /// <summary>
+        /// Adds an override deaths icon to use for a given map.
+        /// Useful when lots of deaths icons need to be overridden and replacing all of those manually is too tedious.
+        /// </summary>
+        /// <param name="mapSID">The map SID to override the deaths icon for</param>
+        /// <param name="side">The side to override the deaths icon for</param>
+        /// <param name="path">The path to override the map's deaths icon with</param>
+        public static void AddOverrideDeathsIcon(string mapSID, AreaMode side, string path) {
+            string sideName = mapSideName(mapSID, side);
+
+            if (OverrideDeathsIcons.TryGetValue(sideName, out _))
+                OverrideDeathsIcons[sideName] = path;
+            else
+                OverrideDeathsIcons.Add(sideName, path);
+        }
+
+        /// <summary>
+        /// Removes the override deaths icon for a given map.
+        /// </summary>
+        /// <param name="mapSID">The map SID to remove the override for</param>
+        /// <param name="side">The side to remove the override for</param>
+        public static void RemoveOverrideDeathsIcon(string mapSID, AreaMode side) {
+            string sideName = mapSideName(mapSID, side);
+
+            if (OverrideDeathsIcons.TryGetValue(sideName, out _))
+                OverrideDeathsIcons.Remove(sideName);
         }
 
         // AltSidesHelper does very similar stuff to us, and we want to override what it does if the XMLs are asking for it.
@@ -781,6 +811,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
                         CheckpointOffset = Calc.Random.Range(Vector2.One * -16f, Vector2.One * 16f),
                         Large = false,
                         Siblings = tech.Length,
+                        TechName = techName,
                         CategoryLabel = categoryLabel,
                         LegacyRenderMode = techInfo.LegacyRenderMode
                     });
@@ -926,15 +957,16 @@ namespace Celeste.Mod.CollabUtils2.UI {
             string collabID = LobbyHelper.GetCollabNameForSID(collabInGameForcedArea.SID);
             if (collabID is null
                 || !CollabMapDataProcessor.GymTech.TryGetValue(collabID, out Dictionary<string, CollabMapDataProcessor.GymTechInfo> techForCollab)
-                || !techForCollab.ContainsKey(collabTech[checkpointIndex]))
+                || !techForCollab.TryGetValue(gymOption.TechName, out CollabMapDataProcessor.GymTechInfo techInfo))
                 return;
 
-            string imageName = $"{collabID}/Gyms/{collabTech[checkpointIndex]}";
+            string imageName = $"{collabID}/Gyms/{gymOption.TechName}";
             if (!MTN.Checkpoints.Has(imageName))
                 return;
 
             MTexture polaroid = MTN.Checkpoints["CollabUtils2/polaroid"];
             MTexture techPreview = MTN.Checkpoints[imageName];
+            MTexture techLearnedMarker = MTN.Checkpoints["CollabUtils2/learnedMarker"];
             if (gymOption.LegacyRenderMode) {
                 Vector2 vector = center + Vector2.UnitX * 800f * Ease.CubeIn(gymOption.CheckpointSlideOut);
                 techPreview.DrawCentered(vector, Color.White, Vector2.One * 0.5f);
@@ -945,12 +977,24 @@ namespace Celeste.Mod.CollabUtils2.UI {
 
                 polaroid.DrawCentered(position, Color.White, 0.85f, checkpointRotation);
 
-                // restart the renderer with `SamplerState.PointClamp` so the preview isn't blurry
+                // restart the renderer with `SamplerState.PointClamp` so the preview isn't blurry + draw preview
                 HiresRenderer.EndRender();
                 HiresRenderer.BeginRender(BlendState.AlphaBlend, SamplerState.PointClamp);
                 techPreview.DrawCentered(position, Color.White, scale, checkpointRotation);
                 HiresRenderer.EndRender();
                 HiresRenderer.BeginRender();
+
+                // draw extra "learned" marker if the tech has been learned
+                if (CollabModule.Instance.SaveData.LearnedTech[collabID].Contains(gymOption.TechName)) {
+                    Vector2 markerPosition = position + new Vector2(280f, -160f).Rotate(checkpointRotation);
+                    Color markerColor = techInfo.LearnedColor
+                        ?? (techInfo.Difficulty is not null
+                            ? defaultLearnedColors.GetValueOrDefault(techInfo.Difficulty, fallbackTechLearnedColor)
+                            : fallbackTechLearnedColor);
+
+                    float markerScale = 1f + (checkpointIndex == self.option ? self.wiggler.Value * gymOption.Pop * 0.4f : 0f);
+                    techLearnedMarker.DrawCentered(markerPosition, markerColor, markerScale, -checkpointRotation * 0.2f);
+                }
             }
         }
 
@@ -1120,6 +1164,27 @@ namespace Celeste.Mod.CollabUtils2.UI {
             }
         }
 
+        public static string GetDeathsIcon(string mapSID, AreaMode side) {
+            // check for 1. any override death icons, 2. any map-specific death icons, 3. the lobby level set's death icon, 4. the regular level set's death icon
+            if (OverrideDeathsIcons.TryGetValue(mapSideName(mapSID, side), out string deathsIcon) && GFX.Gui.Has(deathsIcon))
+                return deathsIcon;
+
+            deathsIcon = $"CollabUtils2/skulls/{mapSID}";
+            if (GFX.Gui.Has(deathsIcon))
+                return deathsIcon;
+
+            string lobbyLevelSet = LobbyHelper.GetLobbyLevelSet(mapSID);
+            deathsIcon = $"CollabUtils2/skulls/{lobbyLevelSet}";
+            if (lobbyLevelSet is not null && GFX.Gui.Has(deathsIcon))
+                return deathsIcon;
+
+            string levelSet = AreaData.Get(mapSID).LevelSet;
+            deathsIcon = $"CollabUtils2/skulls/{levelSet}";
+            if (GFX.Gui.Has(deathsIcon))
+                return deathsIcon;
+            
+            return null;
+        }
 
         private static void OnChapterPanelUpdateStats(On.Celeste.OuiChapterPanel.orig_UpdateStats orig, OuiChapterPanel self, bool wiggle,
             bool? overrideStrawberryWiggle, bool? overrideDeathWiggle, bool? overrideHeartWiggle) {
@@ -1134,13 +1199,8 @@ namespace Celeste.Mod.CollabUtils2.UI {
                 deathsCounter.Visible = areaModeStats.Deaths > 0 && !AreaData.Get(self.Area).Interlude_Safe;
             }
 
-            // mod the death icon: for the path, use the current level set, or for lobbies, the lobby's matching level set.
-            string pathToSkull = "CollabUtils2/skulls/" + self.Area.GetLevelSet();
-            string lobbyLevelSet = LobbyHelper.GetLobbyLevelSet(self.Area.SID);
-            if (lobbyLevelSet != null) {
-                pathToSkull = "CollabUtils2/skulls/" + lobbyLevelSet;
-            }
-            if (GFX.Gui.Has(pathToSkull)) {
+            // mod the death icon
+            if (GetDeathsIcon(self.Area.SID, self.Area.Mode) is { } pathToSkull) {
                 deathsCounter.icon = GFX.Gui[pathToSkull];
                 deathsCountersAddedByCollabUtils.Add(deathsCounter);
             }
@@ -1431,11 +1491,20 @@ namespace Celeste.Mod.CollabUtils2.UI {
             public static void AddOverrideHeartSpriteID(string mapSID, AreaMode side, string spriteID) {
                 InGameOverworldHelper.AddOverrideHeartSpriteID(mapSID, side, spriteID);
             }
-            public static void RemoveOverrideHeartSpriteID(string mapSID, AreaMode side, string spriteID) {
+            public static void RemoveOverrideHeartSpriteID(string mapSID, AreaMode side) {
                 InGameOverworldHelper.RemoveOverrideHeartSpriteID(mapSID, side);
             }
             public static string GetGuiHeartSpriteId(string mapSID, AreaMode side) {
                 return InGameOverworldHelper.GetGuiHeartSpriteId(mapSID, side);
+            }
+            public static void AddOverrideDeathsIcon(string mapSID, AreaMode side, string path) {
+                InGameOverworldHelper.AddOverrideDeathsIcon(mapSID, side, path);
+            }
+            public static void RemoveOverrideDeathsIcon(string mapSID, AreaMode side) {
+                InGameOverworldHelper.RemoveOverrideDeathsIcon(mapSID, side);
+            }
+            public static string GetDeathsIcon(string mapSID, AreaMode side) {
+                return InGameOverworldHelper.GetDeathsIcon(mapSID, side);
             }
         }
     }
