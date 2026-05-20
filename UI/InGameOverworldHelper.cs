@@ -89,7 +89,7 @@ namespace Celeste.Mod.CollabUtils2.UI {
         private static SceneWrappingEntity<Overworld> overworldWrapper;
 
         public static SpriteBank HeartSpriteBank;
-        private static Dictionary<string, string> OverrideHeartSpriteIDs = new Dictionary<string, string>();
+        private static Dictionary<string, string> OverrideHeartSpriteIDs = new();
 
         private static AreaKey? lastArea;
 
@@ -115,6 +115,18 @@ namespace Celeste.Mod.CollabUtils2.UI {
         private static readonly string[] defaultTechOrdering = ["beginner", "intermediate", "advanced", "expert", "grandmaster"];
 
         private static bool presenceLock = false;
+        
+        private static Dictionary<string, Action<AreaData>> OpenChapterPanelCallbacks = new();
+        public static void AddOpenChapterPanelCallback(string collabID, Action<AreaData> callback) {
+            if (OpenChapterPanelCallbacks.TryGetValue(collabID, out _))
+                OpenChapterPanelCallbacks[collabID] = callback;
+            else
+                OpenChapterPanelCallbacks.Add(collabID, callback);
+        }
+        public static void RemoveOpenChapterPanelCallback(string collabID) {
+            if (OpenChapterPanelCallbacks.TryGetValue(collabID, out _))
+                OpenChapterPanelCallbacks.Remove(collabID);
+        }
 
         private static Hook onReloadLevelHook;
         private static Hook onChangePresenceHook;
@@ -1279,11 +1291,11 @@ namespace Celeste.Mod.CollabUtils2.UI {
             }
         }
 
-        public static void OpenChapterPanel(Player player, string sid, ChapterPanelTrigger.ReturnToLobbyMode returnToLobbyMode, bool savingAllowed, bool exitFromGym) {
+        public static void OpenChapterPanel(Player player, string sid, ChapterPanelTrigger.ReturnToLobbyMode returnToLobbyMode, bool saveAndReturnToLobbyAllowed, bool exitFromGym) {
             AreaData areaData = (AreaData.Get(sid) ?? AreaData.Get(0));
             if (!Dialog.Has(areaData.Name + "_collabcredits") && areaData.Mode[0].Checkpoints?.Length > 0) {
                 // saving isn't compatible with checkpoints, because both would appear on the same page.
-                savingAllowed = false;
+                saveAndReturnToLobbyAllowed = false;
             }
 
             player.Drop();
@@ -1292,8 +1304,12 @@ namespace Celeste.Mod.CollabUtils2.UI {
             Open(player, AreaData.Get(sid) ?? AreaData.Get(0), out OuiHelper_EnterChapterPanel.Start,
                 overworld => {
                     InGameOverworldHelper.returnToLobbyMode = returnToLobbyMode;
-                    saveAndReturnToLobbyAllowed = savingAllowed;
+                    InGameOverworldHelper.saveAndReturnToLobbyAllowed = saveAndReturnToLobbyAllowed;
                     InGameOverworldHelper.exitFromGym = exitFromGym;
+
+                    string collabID = LobbyHelper.GetCollabNameForSID(sid);
+                    if (collabID is not null && OpenChapterPanelCallbacks.TryGetValue(collabID, out Action<AreaData> callback))
+                        callback(areaData);
                 });
         }
 
@@ -1505,6 +1521,12 @@ namespace Celeste.Mod.CollabUtils2.UI {
             }
             public static string GetDeathsIcon(string mapSID, AreaMode side) {
                 return InGameOverworldHelper.GetDeathsIcon(mapSID, side);
+            }
+            public static void AddOpenChapterPanelCallback(string collabID, Action<AreaData> callback) {
+                InGameOverworldHelper.AddOpenChapterPanelCallback(collabID, callback);
+            }
+            public static void RemoveOpenChapterPanelCallback(string collabID) {
+                InGameOverworldHelper.RemoveOpenChapterPanelCallback(collabID);
             }
         }
     }
